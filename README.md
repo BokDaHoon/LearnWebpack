@@ -25,7 +25,7 @@ Let's learn what is webpack and the basic of it.
       <script src="https://unpkg.com/lodash@4.16.6"></script>
     </head>
     <body>
-      <script src="app/index.js"></script>
+      <script src="src/index.js"></script>
     </body>
   </html>
   ```
@@ -61,14 +61,14 @@ Let's learn what is webpack and the basic of it.
 
   ```html
   - <script src="https://unpkg.com/lodash@4.16.6"></script>
-  - <script src="app/index.js"></script>
-  + <script src="dist/bundle.js"></script>
+  - <script src="src/index.js"></script>
+  + <script src="dist/main.js"></script>
   ```
 
 6. run this command below and start the index.html. You will see this result on the web page.
 
   ```html
-  webpack app/index.js dist/bundle.js
+  webpack
   ```
 
   ![getting-started-result](https://github.com/joshua1988/TIL/blob/master/webpack/images/webpack-getting-started.png?raw=true)
@@ -81,7 +81,7 @@ Let's learn what is webpack and the basic of it.
   var path = require('path');
 
   module.exports = {
-    entry: './app/index.js',
+    entry: './src/index.js',
     output: {
       filename: 'bundle.js',
       path: path.resolve(__dirname, 'dist')
@@ -94,7 +94,7 @@ Let's learn what is webpack and the basic of it.
 
 ```text
 npm i css-loader style-loader --save-dev
-npm i extract-text-webpack-plugin --save-dev
+npm i mini-css-extract-plugin --save-dev
 ```
 
 1. Create a new `package.json`
@@ -161,30 +161,32 @@ module.exports = {
 }
 ```
 
-7. Add ExtractPlugin to exract the bundled css filename
+7. Add MiniCssExtractPlugin to exract the bundled css filename
 
 ```js
 // webpack.config.js
 
 // ...
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 // ...
 {
   // ...
   module: {
-    rules: [{
-      test: /\.css$/,
-      // Comment this out to load ExtractTextPlugin
-      // use: ['style-loader', 'css-loader']
-      use: ExtractTextPlugin.extract({
-        fallback: "style-loader",
-        use: "css-loader"
-      })
-    }]
-  },
-  plugins: [
-    new ExtractTextPlugin('styles.css')
-  ]
+        rules: [{
+            test: /\.css$/,
+            // Comment this out to load ExtractTextPlugin
+            // use: ['style-loader', 'css-loader']
+            use: [
+                MiniCssExtractPlugin.loader,
+                "css-loader"
+            ]
+        }]
+    },
+    plugins: [
+        new MiniCssExtractPlugin({
+            filename: "[name].css",
+        })
+    ]
 }
 ```
 
@@ -196,7 +198,7 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
     <head>
         <meta charset="utf-8">
         <title>CSS & Libraries Code Splitting</title>
-        <link rel="stylesheet" href="dist/styles.css">
+        <link rel="stylesheet" href="dist/main.css">
     </head>
     <body>
         <header>
@@ -294,25 +296,23 @@ module.exports = {
 optional
 
 ```js
-// 1
+optimization: {
+    splitChunks: {
+        cacheGroups: {
+            vendor: {
+                chunks: 'initial',
+                name: 'vendor',
+                enforce: true,
+            },
+        },
+    }
+},
 plugins: [
-  new webpack.optimize.CommonsChunkPlugin({
-    name: 'vendor' // Specify the common bundle's name.
-  }),
+    new ManifestPlugin({
+        fileName: 'manifest.json',
+        basePath: 'dist/'
+    })
 ]
-
-// 2
-plugins: [
-  new webpack.optimize.CommonsChunkPlugin({
-    names: ['vendor', 'manifest'] // Extract the webpack bootstrap logic into manifest.js
-  }),
-]
-
-// 3
-new ManifestPlugin({
-  fileName: 'manifest.json',
-  basePath: './dist/'
-})
 ```
 
 #### Example 3 - Webpack Resolve & Plugins
